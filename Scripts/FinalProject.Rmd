@@ -35,25 +35,53 @@ Do I have to do extra work to get the proper packages? Yeah.
 But I am justifying this as a nice way to get loops in here and expand my education a bit (I also just want to see if I can do it.)
 
 ```{r}
-install.packages("readxl") # This is the package needed to read the excel documents
+#install.packages("readxl") # This is the package needed to read the excel documents
 ```
 
 ```{r}
 #Now we can get started with creating the for loop
+
 library(readxl)
 
 #I found a trick where I can assign directories names instead of typing every time
+
 XLFolder <- "Data/DataRaw/XLSX/WI_Tree_Phenology/"
 CSVFolder <- "Data/DataRaw/CSV/"
 
 #Here you make the vector of the names of the files
+
 XLFiles <- list.files(XLFolder, pattern = ".xlsx")
 XLFiles
 
 #Finally, the loop that creates the CSVs from XLSXs
+
 for(i in XLFiles) {
   readxl::read_excel(paste0(XLFolder, i)) %>% #allows it to read in the XLSX doc
   write.csv(., paste0(CSVFolder, gsub(".xlsx", ".csv", i))) #tells it to take the XLSX doc, change it to a CSV by changing .xlsx to .csv, then put it in the folder
 }
+```
+
+Was that possibly more difficult than need be? Probably but I did it and I feel awesome.
+
+Now, the next thing I like to do is get a good look at the docs. To do that, I'm goint to read them in, but only get the heads of each one
+
+```{r}
+#Reading in the files themselves
+
+SpringCoords <- read_csv("../Data/DataRaw/CSV/spring_coordinate_data.csv")
+head(SpringCoords)
+PhenoCodes <- read_csv("../Data/DataRaw/CSV/WI_Spring_Phenophase_Data_Codes.csv")
+head(PhenoCodes)
+TreeCoords <- read_csv("../Data/DataRaw/CSV/WI_Spring_Tree_Coordinates.csv")
+head(TreeCoords)
+PhenoAF <- read_csv("../Data/DataRaw/CSV/WI_Tree_Phenology_A_F.csv")
+head(PhenoAF)
+PhenoGL <- read_csv("../Data/DataRaw/CSV/WI_Tree_Phenology_G_L.csv")
+head(PhenoGL)
+PhenoMR <- read_csv("../Data/DataRaw/CSV/WI_Tree_Phenology_M_R.csv")
+head(PhenoMR)
+PhenoSX <- read_csv("../Data/DataRaw/CSV/WI_Tree_Phenology_S_X.csv")
+head(PhenoSX)
+
 ```
 

@@ -6,7 +6,6 @@ comparing the tree phenologies with the data provided by Dr Bledsoe.
 
 A quick note: I tend to prefer UpperCamelCase when naming my stuff, opposed to 
 the snake_case. It's just how my brain works and what is most convenient for 
-typing for me, I hope it isn't too much of an issue
 
 My project will have both DataRaw and DataClean under a Data folder, where Raw
 will have crude, unmodified data and Clean will have cleaned, modified data.
