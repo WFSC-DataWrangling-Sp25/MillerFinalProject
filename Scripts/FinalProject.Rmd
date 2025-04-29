@@ -1,0 +1,59 @@
+---
+title: "Final Project"
+author: "Caleb Miller"
+date: "2025-04-29"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Getting Started
+
+First things first, I will have to load in tidyverse, download my data, and also get a look at my working directory
+```{r}
+#Load tidyverse
+
+library(tidyverse)
+
+#Getting my working directory
+
+getwd()
+
+#Reading in my data, it should already be placed in DataRaw, under XLSX
+
+unzip(zipfile = "Data/DataRaw/XLSX/WI_Tree_Phenology.zip", exdir = "Data/DataRaw/XLSX/")
+
+```
+Uh oh, its already not working. Why? Because these are xlsx files, not csv files. Now, I could just open each file and save them as csv's, but I figured this is a good opportunity early-on to introduce a loop where I can take in the files individually and convert them to csv.
+
+Is it probably simpler to just save the files? Yeah, probably.
+
+Do I have to do extra work to get the proper packages? Yeah.
+
+But I am justifying this as a nice way to get loops in here and expand my education a bit (I also just want to see if I can do it.)
+
+```{r}
+install.packages("readxl") # This is the package needed to read the excel documents
+```
+
+```{r}
+#Now we can get started with creating the for loop
+library(readxl)
+
+#I found a trick where I can assign directories names instead of typing every time
+XLFolder <- "Data/DataRaw/XLSX/WI_Tree_Phenology/"
+CSVFolder <- "Data/DataRaw/CSV/"
+
+#Here you make the vector of the names of the files
+XLFiles <- list.files(XLFolder, pattern = ".xlsx")
+XLFiles
+
+#Finally, the loop that creates the CSVs from XLSXs
+for(i in XLFiles) {
+  readxl::read_excel(paste0(XLFolder, i)) %>% #allows it to read in the XLSX doc
+  write.csv(., paste0(CSVFolder, gsub(".xlsx", ".csv", i))) #tells it to take the XLSX doc, change it to a CSV by changing .xlsx to .csv, then put it in the folder
+}
+```
+
