@@ -36,6 +36,8 @@ But I am justifying this as a nice way to get loops in here and expand my educat
 
 ```{r}
 #install.packages("readxl") # This is the package needed to read the excel documents
+
+#If you don't have the readxl package, you can download it here
 ```
 
 ```{r}
@@ -83,5 +85,65 @@ head(PhenoMR)
 PhenoSX <- read_csv("../Data/DataRaw/CSV/WI_Tree_Phenology_S_X.csv")
 head(PhenoSX)
 
+PhenoSX
+```
+
+Great! Now we can look at all the data and come to some conculsions! Chiefly, there were certainly some decisions that were made with this data set. First and foremost, SpringCoords and TreeCoords are the same! Don't need two identical data tables in any situation. Further, all the Pheno data is broken up into 4 different tables sorted by A-F, G-L, M-R, and S-X. And on top of that, we do not need the 5th column at all and the data is all funky, specifically the way its writen includes the species of the tree, which is recorded in the TreeCoords (redundant data).
+
+Other than that, there's other clean up (-99 instead of NA, excel messed up the date data) but first we need to format the data in a way that doesn't make my head hurt.
+
+I believe the most important place to start would be merging all the Phenos into one table, that way whatever I do to it, I do to all of them.
+
+Which is easier said than done, because these tables are Messed Up.
+
+```{r}
+#First things first, I'm going to play around with PhenoAF a bit to see if i can format it the way I want
+
+#I want to fix one thing right away: the really weird date columns and weird first column. But how do I do that?
+#I don't need that first row, its just column names or data I have in other sheets
+#Same with the Tree ID Column
+
+PhenoAF <- PhenoAF[-1, -5]%>%  #Gets rid of unnecessary columns
+  rename(Year = `...2`, #renames columns
+         Date = `...3`,
+         DOY = `...4`)
+
+PhenoAF$DOY <- as.numeric(PhenoAF$DOY) #changes DOY to numbers instead of characters
+
+PhenoAF <- PhenoAF %>% 
+  mutate(Date = as.Date(DOY-1, origin = paste0(Year, "-01-01"))) #gets actual date instead of messed-up Excel dates
+
+PhenoAF
+```
+
+Now I'm going to do this to all of the remaining Pheno tables, but I don't wanna write all that out, so I'm going to take the above code and condense it into a function that'll clean them for me
+
+```{r}
+CleanMyTables <- function(Table) { #modifying my original cleaning code into a function
+  RenameTable <- Table[-1, -5] %>%
+    rename(Year = `...2`, 
+         Date = `...3`,
+         DOY = `...4`)
+  RenameTable$DOY <- as.numeric(RenameTable$DOY)
+  CleanTable <- RenameTable %>%
+    mutate(Date = as.Date(DOY-1, origin = paste0(Year, "-01-01")))
+  return(CleanTable)
+}
+
+PhenoGL <- CleanMyTables(PhenoGL) #Using them to just clean the tables for me
+PhenoMR <- CleanMyTables(PhenoMR)
+PhenoSX <- CleanMyTables(PhenoSX)
+
+PhenoSX
+```
+
+Now: I still want to mix all the data together into one big table, so to do that, I'm going to use a full_join and join_by(Date)
+
+```{r}
+PhenoAX <- PhenoAF %>% 
+  full_join(PhenoGL, join_by(Date)) %>% 
+  full_join(PhenoMR, join_by(Date)) %>% 
+  full_join(PhenoSX, join_by(Date))
+PhenoAX
 ```
 
