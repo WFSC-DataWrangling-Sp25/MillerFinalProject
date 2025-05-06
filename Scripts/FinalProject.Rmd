@@ -12,6 +12,7 @@ knitr::opts_chunk$set(echo = TRUE)
 ### Getting Started
 
 First things first, I will have to load in tidyverse, download my data, and also get a look at my working directory
+
 ```{r}
 #Load tidyverse
 
@@ -24,8 +25,8 @@ getwd()
 #Reading in my data, it should already be placed in DataRaw, under XLSX
 
 unzip(zipfile = "Data/DataRaw/XLSX/WI_Tree_Phenology.zip", exdir = "Data/DataRaw/XLSX/")
-
 ```
+
 Uh oh, its already not working. Why? Because these are xlsx files, not csv files. Now, I could just open each file and save them as csv's, but I figured this is a good opportunity early-on to introduce a loop where I can take in the files individually and convert them to csv.
 
 Is it probably simpler to just save the files? Yeah, probably.
@@ -34,11 +35,17 @@ Do I have to do extra work to get the proper packages? Yeah.
 
 But I am justifying this as a nice way to get loops in here and expand my education a bit (I also just want to see if I can do it.)
 
+REVIEW: I'm not sure if this explanation is necessary; instead, you could just start with the readxl. According to Ellen, you could mention that this method won't work, so you have to do it the following way, but including all the code that didn't work isn't necessary.
+
 ```{r}
-#install.packages("readxl") # This is the package needed to read the excel documents
+# install.packages("readxl") # This is the package needed to read the excel documents
 
 #If you don't have the readxl package, you can download it here
+
+# REVIEW: Is there meant to be a link here?
 ```
+
+REVIEW: Adding another subheading like the "Getting Started" one above could improve organization
 
 ```{r}
 #Now we can get started with creating the for loop
@@ -61,11 +68,15 @@ for(i in XLFiles) {
   readxl::read_excel(paste0(XLFolder, i)) %>% #allows it to read in the XLSX doc
   write.csv(., paste0(CSVFolder, gsub(".xlsx", ".csv", i))) #tells it to take the XLSX doc, change it to a CSV by changing .xlsx to .csv, then put it in the folder
 }
+
+# REVIEW: I think specifying that the XLSX docs are converted and then added to the CSV folder would make it easier to find the csv files
 ```
 
 Was that possibly more difficult than need be? Probably but I did it and I feel awesome.
 
-Now, the next thing I like to do is get a good look at the docs. To do that, I'm goint to read them in, but only get the heads of each one
+Now, the next thing I like to do is get a good look at the docs. To do that, I'm going to read them in, but only get the heads of each one
+
+REVIEW: fixed typo
 
 ```{r}
 #Reading in the files themselves
@@ -86,6 +97,8 @@ PhenoSX <- read_csv("../Data/DataRaw/CSV/WI_Tree_Phenology_S_X.csv")
 head(PhenoSX)
 
 PhenoSX
+
+# REVIEW: maybe writing a function or using a loop, as you did above, could streamline this process
 ```
 
 Great! Now we can look at all the data and come to some conculsions! Chiefly, there were certainly some decisions that were made with this data set. First and foremost, SpringCoords and TreeCoords are the same! Don't need two identical data tables in any situation. Further, all the Pheno data is broken up into 4 different tables sorted by A-F, G-L, M-R, and S-X. And on top of that, we do not need the 5th column at all and the data is all funky, specifically the way its writen includes the species of the tree, which is recorded in the TreeCoords (redundant data).
@@ -95,6 +108,8 @@ Other than that, there's other clean up (-99 instead of NA, excel messed up the 
 I believe the most important place to start would be merging all the Phenos into one table, that way whatever I do to it, I do to all of them.
 
 Which is easier said than done, because these tables are Messed Up.
+
+REVIEW: I think another subheading would be useful here
 
 ```{r}
 #First things first, I'm going to play around with PhenoAF a bit to see if i can format it the way I want
@@ -114,6 +129,8 @@ PhenoAF <- PhenoAF %>%
   mutate(Date = as.Date(DOY-1, origin = paste0(Year, "-01-01"))) #gets actual date instead of messed-up Excel dates
 
 PhenoAF
+
+# REVIEW: I'm not sure if we should include the experimenting stage in our final product; I believe Ellen said that we should include only our clean code, though we can explain what not to do in the future
 ```
 
 Now I'm going to do this to all of the remaining Pheno tables, but I don't wanna write all that out, so I'm going to take the above code and condense it into a function that'll clean them for me
@@ -130,12 +147,18 @@ CleanMyTables <- function(Table) { #modifying my original cleaning code into a f
   return(CleanTable)
 }
 
-PhenoGL <- CleanMyTables(PhenoGL) #Using them to just clean the tables for me
+PhenoGL <- CleanMyTables(PhenoGL) #Using my function to just clean the tables
 PhenoMR <- CleanMyTables(PhenoMR)
 PhenoSX <- CleanMyTables(PhenoSX)
 
 PhenoSX
+
+# REVIEW: Edited comment to be more specific about what "them" is
+
+# REVIEW: I think specifying somewhere what all the acronyms mean could be really helpful (such as GL, MR, SX, AF, AX)
 ```
+
+REVIEW: I would make another subheading here
 
 Now: I still want to mix all the data together into one big table, so to do that, I'm going to use a full_join and join_by(Date)
 
@@ -146,4 +169,3 @@ PhenoAX <- PhenoAF %>%
   full_join(PhenoSX, join_by(Date))
 PhenoAX
 ```
-
