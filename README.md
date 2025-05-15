@@ -10,14 +10,11 @@ Caleb Miller's Final Project for RNR596
 
 This project is for Data Wrangling in R Spring 2025. My project will be
 about comparing the tree phenologies with the data provided by Dr
-Bledsoe.
-
-*REVIEW: I think providing some more information about the data set you
-are using could be really helpful For example, why are there separate
-files? What kinds of variables are involved? And maybe most importantly,
-what is your objective with this R project? It totally makes sense that
-you might not have this plan ironed out yet, but I think it would be
-really nice once you do figure it out*
+Bledsoe. The phenology describes the dates that certain species of trees'
+leaf out, and the stages of that leaf (budforming, bud opening, leaf expanding).
+I plan on comparing the phenology of the different tree by creating a graph
+showing how many of each species were in the growing season in each phenology
+class.
 
 A quick note: I tend to prefer UpperCamelCase when naming my stuff,
 opposed to the snake_case. It's just how my brain works and what is most

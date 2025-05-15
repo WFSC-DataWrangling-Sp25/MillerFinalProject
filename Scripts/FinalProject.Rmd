@@ -27,25 +27,21 @@ getwd()
 unzip(zipfile = "Data/DataRaw/XLSX/WI_Tree_Phenology.zip", exdir = "Data/DataRaw/XLSX/")
 ```
 
-Uh oh, its already not working. Why? Because these are xlsx files, not csv files. Now, I could just open each file and save them as csv's, but I figured this is a good opportunity early-on to introduce a loop where I can take in the files individually and convert them to csv.
-
-Is it probably simpler to just save the files? Yeah, probably.
-
-Do I have to do extra work to get the proper packages? Yeah.
-
-But I am justifying this as a nice way to get loops in here and expand my education a bit (I also just want to see if I can do it.)
+These are xlsx files, not csv files. Now, I could just open each file and save them as csv's, but I figured this is a good opportunity early-on to introduce a loop where I can take in the files individually and convert them to csv.
 
 REVIEW: I'm not sure if this explanation is necessary; instead, you could just start with the readxl. According to Ellen, you could mention that this method won't work, so you have to do it the following way, but including all the code that didn't work isn't necessary.
 
 ```{r}
 # install.packages("readxl") # This is the package needed to read the excel documents
 
-#If you don't have the readxl package, you can download it here
+#If you don't have the readxl package, you can download it by deleting the # in front of the install.packages("readxl") and running the code
 
 # REVIEW: Is there meant to be a link here?
 ```
 
 REVIEW: Adding another subheading like the "Getting Started" one above could improve organization
+
+### Starting the for loop
 
 ```{r}
 #Now we can get started with creating the for loop
@@ -66,7 +62,7 @@ XLFiles
 
 for(i in XLFiles) {
   readxl::read_excel(paste0(XLFolder, i)) %>% #allows it to read in the XLSX doc
-  write.csv(., paste0(CSVFolder, gsub(".xlsx", ".csv", i))) #tells it to take the XLSX doc, change it to a CSV by changing .xlsx to .csv, then put it in the folder
+  write.csv(., paste0(CSVFolder, gsub(".xlsx", ".csv", i))) #tells it to take the XLSX doc, change it to a CSV by changing .xlsx to .csv, then put it in the CSV folder
 }
 
 # REVIEW: I think specifying that the XLSX docs are converted and then added to the CSV folder would make it easier to find the csv files
@@ -109,7 +105,7 @@ I believe the most important place to start would be merging all the Phenos into
 
 Which is easier said than done, because these tables are Messed Up.
 
-REVIEW: I think another subheading would be useful here
+### Cleaning the Pheno Tables
 
 ```{r}
 #First things first, I'm going to play around with PhenoAF a bit to see if i can format it the way I want
@@ -118,54 +114,146 @@ REVIEW: I think another subheading would be useful here
 #I don't need that first row, its just column names or data I have in other sheets
 #Same with the Tree ID Column
 
-PhenoAF <- PhenoAF[-1, -5]%>%  #Gets rid of unnecessary columns
-  rename(Year = `...2`, #renames columns
+CleanMyTables <- function(Table) { 
+  RenameTable <- Table[-1, -5] %>% #Gets rid of unnecessary columns
+    rename(Year = `...2`, #renames columns
          Date = `...3`,
          DOY = `...4`)
-
-PhenoAF$DOY <- as.numeric(PhenoAF$DOY) #changes DOY to numbers instead of characters
-
-PhenoAF <- PhenoAF %>% 
-  mutate(Date = as.Date(DOY-1, origin = paste0(Year, "-01-01"))) #gets actual date instead of messed-up Excel dates
-
-PhenoAF
-
-# REVIEW: I'm not sure if we should include the experimenting stage in our final product; I believe Ellen said that we should include only our clean code, though we can explain what not to do in the future
-```
-
-Now I'm going to do this to all of the remaining Pheno tables, but I don't wanna write all that out, so I'm going to take the above code and condense it into a function that'll clean them for me
-
-```{r}
-CleanMyTables <- function(Table) { #modifying my original cleaning code into a function
-  RenameTable <- Table[-1, -5] %>%
-    rename(Year = `...2`, 
-         Date = `...3`,
-         DOY = `...4`)
-  RenameTable$DOY <- as.numeric(RenameTable$DOY)
+  RenameTable$DOY <- as.numeric(RenameTable$DOY) #changes DOY to numbers instead of characters
   CleanTable <- RenameTable %>%
-    mutate(Date = as.Date(DOY-1, origin = paste0(Year, "-01-01")))
+    mutate(Date = as.Date(DOY-1, origin = paste0(Year, "-01-01"))) %>% #gets actual date using the DOY, replacing the messed-up Excel dates
+    select(!`...1`) #Gets rid of weird first column
   return(CleanTable)
 }
 
+PhenoAF <- CleanMyTables(PhenoAF)
 PhenoGL <- CleanMyTables(PhenoGL) #Using my function to just clean the tables
 PhenoMR <- CleanMyTables(PhenoMR)
 PhenoSX <- CleanMyTables(PhenoSX)
 
-PhenoSX
+PhenoSX # To check that the function worked
 
-# REVIEW: Edited comment to be more specific about what "them" is
-
-# REVIEW: I think specifying somewhere what all the acronyms mean could be really helpful (such as GL, MR, SX, AF, AX)
 ```
 
-REVIEW: I would make another subheading here
+If you look at the data tables, each of the sites are named A1, A2, A3, B1, B2, B3, etc, and then the individual trees are named something like A1#1, A1#2, A1#3. Cleaning up these naming conventions will come next as it is not the best, but we will get to that. The most important to know right now is that PhenoAF has all the A through F sites, PhenoGL has all the G through L sites. The next thing we will do is merge them all into Pheno AX, which will contain all of the sites named A through X.
+
+### Joining the Tables
 
 Now: I still want to mix all the data together into one big table, so to do that, I'm going to use a full_join and join_by(Date)
 
 ```{r}
 PhenoAX <- PhenoAF %>% 
-  full_join(PhenoGL, join_by(Date)) %>% 
-  full_join(PhenoMR, join_by(Date)) %>% 
-  full_join(PhenoSX, join_by(Date))
+  full_join(PhenoGL, join_by(Date, DOY, Year)) %>% #Organizes by Date, DOY, and Year. Otherwise, there will be duplicate DOY and Year columns (even though they all match by Date)
+  full_join(PhenoMR, join_by(Date, DOY, Year)) %>% 
+  full_join(PhenoSX, join_by(Date, DOY, Year))
 PhenoAX
 ```
+
+### Make Data Long, Not Wide
+
+Now! This data is way too wide, and the columns are named after data (Tree and Site description). So now we are going to reassign them into a single column, named TreeID, and then we are going to split that column so that there is also a Site column (remember, A1#1 is a TreeID, with A1 denoting the site and #1 denoting the specific tree at that site).
+
+```{r}
+LongAX <- PhenoAX %>% #LongAX is the long version of PhenoAX
+  pivot_longer(`A1#1`:`X12#3`,
+               names_to = "TreeID",
+               values_to = "Phenophase") #The Pheno data needs to be added to a Phenophase column
+
+head(LongAX)
+tail(LongAX)
+```
+
+Now I am going to make a split from TreeID to add a Site column
+
+```{r}
+LongAX <- LongAX %>% 
+  separate(TreeID, c("Site", "TreeID"), sep = "#")
+
+head(LongAX)
+tail(LongAX)
+LongAX
+```
+
+### Correct NAs
+
+Now that I have my one massive data sheet, I'm going to remove false NAs, recorded here as -99, and then I am going to drop any rows with NA in the Phenophase column. I am doing this because it is likely that certain sites were not monitored during a certain year, or maybe their leaves started opening later in the year, but this data is for observing the Phenophase, so if there is no data, I do not need that row.
+
+```{r}
+LongAX <- LongAX %>% 
+  mutate(Phenophase = na_if(Phenophase, "-99")) %>% #changing -99s into NAs
+  drop_na(Phenophase) #dropping the rows where Phenophase is NA
+
+head(LongAX)
+```
+
+### Add Species Column
+
+Now, to compare the phenology of the tree species against each other, I need to add a column for the species of each tree. To do taht, I am going to take the TreeCoords data, then split its TreeID column similar to what happened with LongAX, then I am going to join it to the dataframe as well
+
+```{r}
+TreeCoords <- TreeCoords %>% 
+  separate(TreeID, c("Site", "TreeID"), sep = "#") %>%  #splitting Site and TreeID
+  select(Site, TreeID, Species)
+
+head(TreeCoords)
+
+LongAX <- LongAX %>% 
+  inner_join(TreeCoords, join_by(Site, TreeID))
+head(LongAX)
+```
+
+Personally, I just would prefer to have species in front of Phenophase
+
+```{r}
+LongAX <- LongAX %>% 
+  relocate(Species, .before = Phenophase)
+head(LongAX)
+```
+
+### Sorting Phenophase
+
+Now, Phenophase being 290 means nothing to me, so I'm going to assign it a quick explanation in a new column so that when I graph the data, anyone can read it and understand what it says. The problem with that is that there are many codes that are somewhat similar (Bud Swollen, 10-50% vs Bud Swollen, 50-90%) that I will likely push into a single category (Bud Swollen). Further, they are dissected into different categories dependent on whether they are deciduous or non-deciduous trees. So first thing I need to do is look at the species to know which are deciduous and not deciduous, then create an if-else function to sort the different phenophases into either their respective responses.
+
+```{r}
+LongAX %>% 
+  group_by(Species) %>% 
+  summarize(abundance = n()) # Lets us see how many of each species there is, while also giving us a list of each species
+
+#Create list of deciduous trees
+Deciduous <- c("Aspen", "B. Aspen", "Basswood", "Blk. Ash", "R. Maple", "S. Alder", "S. Maple", "W. Birch", "Y. Birch")
+
+#Final Dataframe with Phenology column describing the specific Phenology of the species
+
+CompleteAX <- LongAX %>% 
+  mutate(Phenology = case_when(substr(as.character(Phenophase), 1, 1) == "1" ~ "Bud Visible", #Makes Phenotype based on the first number of the Phenophase code
+                               substr(as.character(Phenophase), 1, 1) == "2" ~ "Bud Swollen",
+                               substr(as.character(Phenophase), 1, 1) == "3" ~ "Bud Open",
+                               substr(as.character(Phenophase), 1, 1) == "4" & Species %in% Deciduous == TRUE ~ "Leaf Out", #Adds the condition of whether its deciduous or not
+                               substr(as.character(Phenophase), 1, 1) == "4" & Species %in% Deciduous == FALSE ~ "Candle Out",
+                               substr(as.character(Phenophase), 1, 1) == "5" & Species %in% Deciduous == TRUE ~ "Full Leaf Unfolded",
+                               substr(as.character(Phenophase), 1, 1) == "5" & Species %in% Deciduous == FALSE ~ "Needles Unfolding from Candle",
+                               substr(as.character(Phenophase), 1, 1) == "6" & Species %in% Deciduous == TRUE ~ "Leaf Expansion",
+                               substr(as.character(Phenophase), 1, 1) == "6" & Species %in% Deciduous == FALSE ~ "Not Used"))
+
+CompleteAX
+```
+
+### Finally the Graphs
+
+Finally I can graph the data, using DOY to show the season of leafing, filled with the particular Phenology, and then facet wrapped to show each species own phenology. I included a theme, as well as labelled my axes. 
+```{r}
+AXPlot <- ggplot(CompleteAX, mapping = aes(x = DOY, fill = Phenology)) +
+  geom_bar(alpha = 0.5) +
+  labs(x = "Day of Year (DOY)", y = "Number of Trees", fill = "Phenology") +
+  facet_wrap(~Species, scales = "free_y") +
+  theme_classic()
+
+AXPlot
+```
+
+From here, I can observe how many of each species were in each phenology class, and the progression of it throughout the season. Now, I am going to save it under in my Plots folder to complete my assignment. 
+
+```{r}
+ggsave("../Plots/AXPlot.png", AXPlot)
+```
+
