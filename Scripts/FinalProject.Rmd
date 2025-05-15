@@ -2,7 +2,7 @@
 title: "Final Project"
 author: "Caleb Miller"
 date: "2025-04-29"
-output: pdf_document
+output: github_document
 ---
 
 ```{r setup, include=FALSE}
