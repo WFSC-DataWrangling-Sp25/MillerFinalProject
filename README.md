@@ -34,3 +34,16 @@ Documents will have any supporting documents or papers that relate to
 the project.
 
 Plots will have any plots or graphs I make for the project.
+
+Specific points where I demonstrated certain weeks' skills can be found here:
+
+Week 4: 138
+Week 5: 238
+Week 6: 150
+Week 7: 117
+Week 11: 110
+Week 12: 220
+Week 13: 60
+
+I've excluded Weeks 8 - 10 because they focus more on the construction of projects
+and documents in R itself, so I'll assume their presence answers the requirements.

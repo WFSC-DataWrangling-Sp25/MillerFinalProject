@@ -81,7 +81,7 @@ XLFiles
 ``` r
 #Finally, the loop that creates the CSVs from XLSXs
 
-for(i in XLFiles) {
+for(i in XLFiles) { # Week13
   readxl::read_excel(paste0(XLFolder, i)) %>% #allows it to read in the XLSX doc
   write.csv(., paste0(CSVFolder, gsub(".xlsx", ".csv", i))) #tells it to take the XLSX doc, change it to a CSV by changing .xlsx to .csv, then put it in the CSV folder
 }
@@ -386,14 +386,14 @@ Which is easier said than done, because these tables are Messed Up.
 #I don't need that first row, its just column names or data I have in other sheets
 #Same with the Tree ID Column
 
-CleanMyTables <- function(Table) { 
+CleanMyTables <- function(Table) { #Week 11
   RenameTable <- Table[-1, -5] %>% #Gets rid of unnecessary columns
     rename(Year = `...2`, #renames columns
          Date = `...3`,
          DOY = `...4`)
   RenameTable$DOY <- as.numeric(RenameTable$DOY) #changes DOY to numbers instead of characters
   CleanTable <- RenameTable %>%
-    mutate(Date = as.Date(DOY-1, origin = paste0(Year, "-01-01"))) %>% #gets actual date using the DOY, replacing the messed-up Excel dates
+    mutate(Date = as.Date(DOY-1, origin = paste0(Year, "-01-01"))) %>% #gets actual date using the DOY, replacing the messed-up Excel dates #Week 7
     select(!`...1`) #Gets rid of weird first column
   return(CleanTable)
 }
@@ -441,7 +441,7 @@ Now: I still want to mix all the data together into one big table, so to
 do that, I’m going to use a full_join and join_by(Date)
 
 ``` r
-PhenoAX <- PhenoAF %>% 
+PhenoAX <- PhenoAF %>% #Week 4
   full_join(PhenoGL, join_by(Date, DOY, Year)) %>% #Organizes by Date, DOY, and Year. Otherwise, there will be duplicate DOY and Year columns (even though they all match by Date)
   full_join(PhenoMR, join_by(Date, DOY, Year)) %>% 
   full_join(PhenoSX, join_by(Date, DOY, Year))
@@ -478,7 +478,7 @@ so that there is also a Site column (remember, A1#1 is a TreeID, with A1
 denoting the site and \#1 denoting the specific tree at that site).
 
 ``` r
-LongAX <- PhenoAX %>% #LongAX is the long version of PhenoAX
+LongAX <- PhenoAX %>% #LongAX is the long version of PhenoAX #Week 6
   pivot_longer(`A1#1`:`X12#3`,
                names_to = "TreeID",
                values_to = "Phenophase") #The Pheno data needs to be added to a Phenophase column
@@ -663,7 +663,7 @@ and not deciduous, then create an if-else function to sort the different
 phenophases into either their respective responses.
 
 ``` r
-LongAX %>% 
+LongAX %>%
   group_by(Species) %>% 
   summarize(abundance = n()) # Lets us see how many of each species there is, while also giving us a list of each species
 ```
@@ -693,7 +693,7 @@ Deciduous <- c("Aspen", "B. Aspen", "Basswood", "Blk. Ash", "R. Maple", "S. Alde
 
 #Final Dataframe with Phenology column describing the specific Phenology of the species
 
-CompleteAX <- LongAX %>% 
+CompleteAX <- LongAX %>% #Week 12
   mutate(Phenology = case_when(substr(as.character(Phenophase), 1, 1) == "1" ~ "Bud Visible", #Makes Phenotype based on the first number of the Phenophase code
                                substr(as.character(Phenophase), 1, 1) == "2" ~ "Bud Swollen",
                                substr(as.character(Phenophase), 1, 1) == "3" ~ "Bud Open",
@@ -730,7 +730,7 @@ each species own phenology. I included a theme, as well as labelled my
 axes.
 
 ``` r
-AXPlot <- ggplot(CompleteAX, mapping = aes(x = DOY, fill = Phenology)) +
+AXPlot <- ggplot(CompleteAX, mapping = aes(x = DOY, fill = Phenology)) + #Week 5
   geom_bar(alpha = 0.5) +
   labs(x = "Day of Year (DOY)", y = "Number of Trees", fill = "Phenology") +
   facet_wrap(~Species, scales = "free_y") +
