@@ -36,12 +36,9 @@ REVIEW: I'm not sure if this explanation is necessary; instead, you could just s
 
 #If you don't have the readxl package, you can download it by deleting the # in front of the install.packages("readxl") and running the code
 
-# REVIEW: Is there meant to be a link here?
 ```
 
-REVIEW: Adding another subheading like the "Getting Started" one above could improve organization
-
-### Starting the for loop
+### Starting the For Loop
 
 ```{r}
 #Now we can get started with creating the for loop
@@ -65,14 +62,11 @@ for(i in XLFiles) {
   write.csv(., paste0(CSVFolder, gsub(".xlsx", ".csv", i))) #tells it to take the XLSX doc, change it to a CSV by changing .xlsx to .csv, then put it in the CSV folder
 }
 
-# REVIEW: I think specifying that the XLSX docs are converted and then added to the CSV folder would make it easier to find the csv files
 ```
 
 Was that possibly more difficult than need be? Probably but I did it and I feel awesome.
 
 Now, the next thing I like to do is get a good look at the docs. To do that, I'm going to read them in, but only get the heads of each one
-
-REVIEW: fixed typo
 
 ```{r}
 #Reading in the files themselves
@@ -94,7 +88,6 @@ head(PhenoSX)
 
 PhenoSX
 
-# REVIEW: maybe writing a function or using a loop, as you did above, could streamline this process
 ```
 
 Great! Now we can look at all the data and come to some conculsions! Chiefly, there were certainly some decisions that were made with this data set. First and foremost, SpringCoords and TreeCoords are the same! Don't need two identical data tables in any situation. Further, all the Pheno data is broken up into 4 different tables sorted by A-F, G-L, M-R, and S-X. And on top of that, we do not need the 5th column at all and the data is all funky, specifically the way its writen includes the species of the tree, which is recorded in the TreeCoords (redundant data).
@@ -233,7 +226,7 @@ CompleteAX <- LongAX %>%
                                substr(as.character(Phenophase), 1, 1) == "5" & Species %in% Deciduous == TRUE ~ "Full Leaf Unfolded",
                                substr(as.character(Phenophase), 1, 1) == "5" & Species %in% Deciduous == FALSE ~ "Needles Unfolding from Candle",
                                substr(as.character(Phenophase), 1, 1) == "6" & Species %in% Deciduous == TRUE ~ "Leaf Expansion",
-                               substr(as.character(Phenophase), 1, 1) == "6" & Species %in% Deciduous == FALSE ~ "Not Used"))
+                               substr(as.character(Phenophase), 1, 1) == "6" & Species %in% Deciduous == FALSE ~ "Not Used")) #Only added the Not Used just in case there are some 600 stuff for non-deciduous trees.
 
 CompleteAX
 ```
